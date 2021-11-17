@@ -1,8 +1,5 @@
 package com.example.windowapps
 
-//import java.util.logging.Level
-//import java.util.logging.Logger
-
 import javafx.application.Application
 import javafx.collections.FXCollections
 import javafx.embed.swing.SwingFXUtils
@@ -20,6 +17,7 @@ import javafx.scene.paint.Color
 import javafx.stage.FileChooser
 import javafx.stage.Stage
 import javafx.scene.control.Menu
+import javafx.scene.layout.StackPane
 import java.awt.Rectangle
 import java.awt.Robot
 import java.awt.Toolkit
@@ -33,26 +31,28 @@ import javax.imageio.ImageIO
 
 class ScreenshotApp : Application(){
      override fun  start(stage: Stage){
-
          val root = VBox()
-         val a = 0
-         val scene = Scene(root, 500.0, 400.0)
+
+
+
+         val stack = StackPane()
+         val scene = Scene(root, stack.width, stack.height)
          val menuBar = MenuBar()
          val menu  = Menu("Program")
          val closeItem = MenuItem("Close")
          val saveItem = MenuItem("Save")
          val switchImgItem = MenuItem("Switch")
+
+         val canvas = Canvas()
+
+         val g = canvas.graphicsContext2D
+
          menu.items.addAll(closeItem, saveItem, switchImgItem)
          menuBar.menus.add(menu)
 
          val loadImage = Button("load")
-         loadImage.translateX = 400.0
+         loadImage.translateX = 430.0
 
-         val canvas = Canvas()
-         canvas.width = 500.0
-         canvas.height = 400.0
-
-         val g = canvas.graphicsContext2D
 
          val takeScreenshot = Button("Screenshot")
 
@@ -73,7 +73,7 @@ class ScreenshotApp : Application(){
          slider.isShowTickMarks = true
          slider.isShowTickLabels = true
          slider.blockIncrement = 1.0
-         slider.majorTickUnit = 1.0;
+         slider.majorTickUnit = 1.0
          slider.minorTickCount = 0
          slider.isSnapToTicks = true
          slider.setMaxSize(150.0,10.0)
@@ -98,10 +98,12 @@ class ScreenshotApp : Application(){
         }
 
         switchImgItem.onAction = EventHandler {
+
             initDraw(g)
         }
 
         loadImage.onAction = EventHandler {
+            scene.width
             initDraw(g)
         }
 
@@ -111,7 +113,10 @@ class ScreenshotApp : Application(){
          }
 
 
-        canvas.onMouseDragged = EventHandler<MouseEvent> { e->
+        canvas.onMouseDragged = EventHandler { e->
+
+
+
             val size : Double = langsComboBox.value.toDouble()
             val x = e.x - size / 2
             val y = e.y - size / 2
@@ -120,14 +125,17 @@ class ScreenshotApp : Application(){
                 g.clearRect(x, y, size, size)
             }else{
                 g.fill = colorPicker.value
-                g.fillRect(x, y, size, size)
+                g.fillOval(x, y, size, size)
             }
-
-
 
         }
 
-         scene.onKeyPressed = EventHandler<KeyEvent> { e->
+
+        scene.onMouseDragged = EventHandler { e->
+            canvas.width  = scene.width
+            canvas.height = scene.height
+        }
+         scene.onKeyPressed = EventHandler { e->
              if(kCombSave.match(e)){
                 saveCanvas(stage, scene, canvas)
              }
@@ -169,7 +177,7 @@ class ScreenshotApp : Application(){
                 val renderedImage: RenderedImage = SwingFXUtils.fromFXImage(writableImage, null)
                 ImageIO.write(renderedImage, "png", file)
             } catch (ex: IOException) {
-                Logger.getLogger(ScreenshotApp::class.java.getName()).log(Level.SEVERE, null, ex)
+                Logger.getLogger(ScreenshotApp::class.java.name).log(Level.SEVERE, null, ex)
             }
         }
     }
@@ -188,21 +196,18 @@ class ScreenshotApp : Application(){
 
     private fun initDraw(gc: GraphicsContext) {
 
-        val canvasWidth = gc.canvas.width
-        val canvasHeight = gc.canvas.height
-
-        val bgX = canvasWidth / 30
-        val bgY = canvasHeight / 30
-
         val fileChooser = FileChooser()
-//        fileChooser.initialDirectory = File(System.getProperty("user.home"))
         val file = fileChooser.showOpenDialog(null)
         print(file.path)
 
 
         val image = Image(file.toURI().toString())
 
-      gc.drawImage(image, bgX, bgY)
+
+        gc.canvas.height =  image.height
+        gc.canvas.width = image.width
+        gc.clearRect(0.0, 0.0, gc.canvas.width, gc.canvas.height)
+        gc.drawImage(image, 0.0,0.0)
 
     }
 
@@ -215,18 +220,16 @@ class ScreenshotApp : Application(){
             fileChooser.extensionFilters.add(extFilter)
             val file = fileChooser.showSaveDialog(null)
             val screenSize = Toolkit.getDefaultToolkit().screenSize
-            val captureRect = Rectangle(0 ,0, screenSize.width / 2, screenSize.height / 2)
+            val captureRect = Rectangle(0 ,0, screenSize.width, screenSize.height)
 
-            val screemFullImage = robot.createScreenCapture(captureRect)
-            ImageIO.write(screemFullImage, "jpg", File(file.path));
+            val screenFullImage = robot.createScreenCapture(captureRect)
+            ImageIO.write(screenFullImage, "jpg", File(file.path))
 
         }
         catch (ex: IOException){
             print(ex)
         }
     }
-
-
 
 }
 
