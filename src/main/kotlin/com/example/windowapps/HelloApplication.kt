@@ -34,9 +34,7 @@ class ScreenshotApp : Application(){
          val root = VBox()
 
 
-
-         val stack = StackPane()
-         val scene = Scene(root, stack.width, stack.height)
+         val scene = Scene(root, 700.0, 600.0)
          val menuBar = MenuBar()
          val menu  = Menu("Program")
          val closeItem = MenuItem("Close")
@@ -103,7 +101,6 @@ class ScreenshotApp : Application(){
         }
 
         loadImage.onAction = EventHandler {
-            scene.width
             initDraw(g)
         }
 
